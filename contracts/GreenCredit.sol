@@ -1,37 +1,37 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
-
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract GreenCredit is ERC20, AccessControl {
     bytes32 public constant PRODUCER_ROLE = keccak256("PRODUCER_ROLE");
+    bytes32 public constant BUYER_ROLE = keccak256("BUYER_ROLE");
     bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
 
-    uint public constant HYDROGEN_PER_CREDIT = 100;
+    event CreditsIssued(address indexed producer, address indexed buyer, uint256 amount);
+    event CreditsBurned(address indexed buyer, uint256 amount);
 
-    event CreditsIssued(address indexed producer, address indexed to, uint amount);
-    event CreditsBurned(address indexed buyer, uint amount);
-
-    constructor() ERC20("Green Hydrogen Credit", "GHC") {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender); // deployer = admin
+    constructor() ERC20("GreenCredit", "GC") {
+        // The deployer (msg.sender) gets admin role
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    // Producer creates credits and sends them to an address
-    function issue(address to, uint256 amount) external onlyRole(PRODUCER_ROLE) {
-        _mint(to, amount);
-        emit CreditsIssued(msg.sender, to, amount);
+    /// @notice Producer issues credits to a buyer
+    function issue(address buyer, uint256 amount) external onlyRole(PRODUCER_ROLE) {
+        require(hasRole(BUYER_ROLE, buyer), "Recipient must be a Buyer");
+        _mint(buyer, amount);
+        emit CreditsIssued(msg.sender, buyer, amount);
     }
 
-    // Buyer burns credits (when hydrogen is used)
-    function useCredits(uint256 amount) external {
+    /// @notice Buyer burns credits when they use hydrogen
+    function useCredits(uint256 amount) external onlyRole(BUYER_ROLE) {
         _burn(msg.sender, amount);
         emit CreditsBurned(msg.sender, amount);
     }
 
-    // Helper: hydrogen equivalent
-    function hydrogenFromCredits(uint256 credits) public pure returns (uint256) {
-        return credits * HYDROGEN_PER_CREDIT;
+    /// @notice Auditor can see balances (read-only, no role restriction required here)
+    function getBalance(address account) external view returns (uint256) {
+        return balanceOf(account);
     }
 }

@@ -27,17 +27,17 @@ export interface GreenCreditInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "AUDITOR_ROLE"
+      | "BUYER_ROLE"
       | "DEFAULT_ADMIN_ROLE"
-      | "HYDROGEN_PER_CREDIT"
       | "PRODUCER_ROLE"
       | "allowance"
       | "approve"
       | "balanceOf"
       | "decimals"
+      | "getBalance"
       | "getRoleAdmin"
       | "grantRole"
       | "hasRole"
-      | "hydrogenFromCredits"
       | "issue"
       | "name"
       | "renounceRole"
@@ -66,11 +66,11 @@ export interface GreenCreditInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "DEFAULT_ADMIN_ROLE",
+    functionFragment: "BUYER_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "HYDROGEN_PER_CREDIT",
+    functionFragment: "DEFAULT_ADMIN_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -91,6 +91,10 @@ export interface GreenCreditInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "getBalance",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
   ): string;
@@ -101,10 +105,6 @@ export interface GreenCreditInterface extends Interface {
   encodeFunctionData(
     functionFragment: "hasRole",
     values: [BytesLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "hydrogenFromCredits",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "issue",
@@ -145,12 +145,9 @@ export interface GreenCreditInterface extends Interface {
     functionFragment: "AUDITOR_ROLE",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "BUYER_ROLE", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "HYDROGEN_PER_CREDIT",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -161,16 +158,13 @@ export interface GreenCreditInterface extends Interface {
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getBalance", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "hydrogenFromCredits",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "issue", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(
@@ -229,13 +223,13 @@ export namespace CreditsBurnedEvent {
 export namespace CreditsIssuedEvent {
   export type InputTuple = [
     producer: AddressLike,
-    to: AddressLike,
+    buyer: AddressLike,
     amount: BigNumberish
   ];
-  export type OutputTuple = [producer: string, to: string, amount: bigint];
+  export type OutputTuple = [producer: string, buyer: string, amount: bigint];
   export interface OutputObject {
     producer: string;
-    to: string;
+    buyer: string;
     amount: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
@@ -365,9 +359,9 @@ export interface GreenCredit extends BaseContract {
 
   AUDITOR_ROLE: TypedContractMethod<[], [string], "view">;
 
-  DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
+  BUYER_ROLE: TypedContractMethod<[], [string], "view">;
 
-  HYDROGEN_PER_CREDIT: TypedContractMethod<[], [bigint], "view">;
+  DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
   PRODUCER_ROLE: TypedContractMethod<[], [string], "view">;
 
@@ -387,6 +381,8 @@ export interface GreenCredit extends BaseContract {
 
   decimals: TypedContractMethod<[], [bigint], "view">;
 
+  getBalance: TypedContractMethod<[account: AddressLike], [bigint], "view">;
+
   getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
 
   grantRole: TypedContractMethod<
@@ -401,14 +397,8 @@ export interface GreenCredit extends BaseContract {
     "view"
   >;
 
-  hydrogenFromCredits: TypedContractMethod<
-    [credits: BigNumberish],
-    [bigint],
-    "view"
-  >;
-
   issue: TypedContractMethod<
-    [to: AddressLike, amount: BigNumberish],
+    [buyer: AddressLike, amount: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -459,11 +449,11 @@ export interface GreenCredit extends BaseContract {
     nameOrSignature: "AUDITOR_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "DEFAULT_ADMIN_ROLE"
+    nameOrSignature: "BUYER_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "HYDROGEN_PER_CREDIT"
-  ): TypedContractMethod<[], [bigint], "view">;
+    nameOrSignature: "DEFAULT_ADMIN_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "PRODUCER_ROLE"
   ): TypedContractMethod<[], [string], "view">;
@@ -488,6 +478,9 @@ export interface GreenCredit extends BaseContract {
     nameOrSignature: "decimals"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "getBalance"
+  ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
+  getFunction(
     nameOrSignature: "getRoleAdmin"
   ): TypedContractMethod<[role: BytesLike], [string], "view">;
   getFunction(
@@ -505,12 +498,9 @@ export interface GreenCredit extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "hydrogenFromCredits"
-  ): TypedContractMethod<[credits: BigNumberish], [bigint], "view">;
-  getFunction(
     nameOrSignature: "issue"
   ): TypedContractMethod<
-    [to: AddressLike, amount: BigNumberish],
+    [buyer: AddressLike, amount: BigNumberish],
     [void],
     "nonpayable"
   >;

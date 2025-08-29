@@ -1,26 +1,22 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const [admin, producer, buyer, auditor] = await ethers.getSigners();
+  const [deployer, producer, buyer, auditor] = await ethers.getSigners();
 
-  console.log("Deploying with admin:", admin.address);
+  const GreenCredit = await ethers.deployContract("GreenCredit");
+  await GreenCredit.waitForDeployment();
 
-  const GreenCredit = await ethers.getContractFactory("GreenCredit");
-  const greenCredit = await GreenCredit.deploy();
-  await greenCredit.waitForDeployment();
+  console.log("GreenCredit deployed at:", GreenCredit.target);
 
-  console.log("GreenCredit deployed to:", await greenCredit.getAddress());
+  // Grant roles
+  await GreenCredit.grantRole(await GreenCredit.PRODUCER_ROLE(), producer.address);
+  await GreenCredit.grantRole(await GreenCredit.BUYER_ROLE(), buyer.address);
+  await GreenCredit.grantRole(await GreenCredit.AUDITOR_ROLE(), auditor.address);
 
-  // Assign roles
-  await greenCredit.grantRole(await greenCredit.PRODUCER_ROLE(), producer.address);
-  await greenCredit.grantRole(await greenCredit.AUDITOR_ROLE(), auditor.address);
-
-  console.log("Producer role granted to:", producer.address);
-  console.log("Auditor role granted to:", auditor.address);
-  console.log("Buyer will be:", buyer.address);
+  console.log("Roles assigned!");
 }
 
 main().catch((err) => {
   console.error(err);
-  process.exitCode = 1;
+  process.exit(1);
 });
