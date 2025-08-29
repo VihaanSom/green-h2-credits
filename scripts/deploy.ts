@@ -1,16 +1,15 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  // Replace "Counter" with the name of your contract
-  const Counter = await ethers.getContractFactory("Counter");
-  const counter = await Counter.deploy();
+  // Deploy GreenCredit only
+  const GreenCredit = await ethers.getContractFactory("GreenCredit");
+  const greenCredit = await GreenCredit.deploy();
+  await greenCredit.waitForDeployment();
 
-  await counter.waitForDeployment();
-
-  console.log("Counter deployed to:", await counter.getAddress());
+  console.log("GreenCredit deployed to:", await greenCredit.getAddress());
 }
 
-main().catch((error) => {
-  console.error(error);
+main().catch((err) => {
+  console.error(err);
   process.exitCode = 1;
 });
