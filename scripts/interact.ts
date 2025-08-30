@@ -13,7 +13,7 @@ async function main() {
 
   // Certifier approves certificate ID=1 for producer
   const certifierConnected = greenCredit.connect(certifier);
-  const txCert = await certifierConnected.approveCertificate(1, producer.address);
+  const txCert = await certifierConnected.approveCertificate(1, producer.address,20);
   await txCert.wait();
   console.log("Certifier approved certificate ID 1 for producer");
 

@@ -35,8 +35,8 @@ export interface GreenCreditInterface extends Interface {
       | "allowance"
       | "approve"
       | "approveCertificate"
-      | "approvedCertificates"
       | "balanceOf"
+      | "certificates"
       | "decimals"
       | "getBalance"
       | "getRoleAdmin"
@@ -105,15 +105,15 @@ export interface GreenCreditInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "approveCertificate",
-    values: [BigNumberish, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "approvedCertificates",
-    values: [BigNumberish]
+    values: [BigNumberish, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "certificates",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
@@ -197,11 +197,11 @@ export interface GreenCreditInterface extends Interface {
     functionFragment: "approveCertificate",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "approvedCertificates",
+    functionFragment: "certificates",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getBalance", data: BytesLike): Result;
   decodeFunctionResult(
@@ -259,17 +259,20 @@ export namespace CertificateApprovedEvent {
   export type InputTuple = [
     certifier: AddressLike,
     certId: BigNumberish,
-    producer: AddressLike
+    producer: AddressLike,
+    volume: BigNumberish
   ];
   export type OutputTuple = [
     certifier: string,
     certId: bigint,
-    producer: string
+    producer: string,
+    volume: bigint
   ];
   export interface OutputObject {
     certifier: string;
     certId: bigint;
     producer: string;
+    volume: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -294,13 +297,20 @@ export namespace CreditsIssuedEvent {
   export type InputTuple = [
     producer: AddressLike,
     buyer: AddressLike,
-    amount: BigNumberish
+    amount: BigNumberish,
+    certId: BigNumberish
   ];
-  export type OutputTuple = [producer: string, buyer: string, amount: bigint];
+  export type OutputTuple = [
+    producer: string,
+    buyer: string,
+    amount: bigint,
+    certId: bigint
+  ];
   export interface OutputObject {
     producer: string;
     buyer: string;
     amount: bigint;
+    certId: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -476,18 +486,25 @@ export interface GreenCredit extends BaseContract {
   >;
 
   approveCertificate: TypedContractMethod<
-    [certId: BigNumberish, producer: AddressLike],
+    [certId: BigNumberish, producer: AddressLike, volume: BigNumberish],
     [void],
     "nonpayable"
   >;
 
-  approvedCertificates: TypedContractMethod<
+  balanceOf: TypedContractMethod<[account: AddressLike], [bigint], "view">;
+
+  certificates: TypedContractMethod<
     [arg0: BigNumberish],
-    [boolean],
+    [
+      [string, bigint, bigint, boolean] & {
+        producer: string;
+        volume: bigint;
+        usedVolume: bigint;
+        approved: boolean;
+      }
+    ],
     "view"
   >;
-
-  balanceOf: TypedContractMethod<[account: AddressLike], [bigint], "view">;
 
   decimals: TypedContractMethod<[], [bigint], "view">;
 
@@ -596,16 +613,27 @@ export interface GreenCredit extends BaseContract {
   getFunction(
     nameOrSignature: "approveCertificate"
   ): TypedContractMethod<
-    [certId: BigNumberish, producer: AddressLike],
+    [certId: BigNumberish, producer: AddressLike, volume: BigNumberish],
     [void],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "approvedCertificates"
-  ): TypedContractMethod<[arg0: BigNumberish], [boolean], "view">;
-  getFunction(
     nameOrSignature: "balanceOf"
   ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "certificates"
+  ): TypedContractMethod<
+    [arg0: BigNumberish],
+    [
+      [string, bigint, bigint, boolean] & {
+        producer: string;
+        volume: bigint;
+        usedVolume: bigint;
+        approved: boolean;
+      }
+    ],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "decimals"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -772,7 +800,7 @@ export interface GreenCredit extends BaseContract {
       ApprovalEvent.OutputObject
     >;
 
-    "CertificateApproved(address,uint256,address)": TypedContractEvent<
+    "CertificateApproved(address,uint256,address,uint256)": TypedContractEvent<
       CertificateApprovedEvent.InputTuple,
       CertificateApprovedEvent.OutputTuple,
       CertificateApprovedEvent.OutputObject
@@ -794,7 +822,7 @@ export interface GreenCredit extends BaseContract {
       CreditsBurnedEvent.OutputObject
     >;
 
-    "CreditsIssued(address,address,uint256)": TypedContractEvent<
+    "CreditsIssued(address,address,uint256,uint256)": TypedContractEvent<
       CreditsIssuedEvent.InputTuple,
       CreditsIssuedEvent.OutputTuple,
       CreditsIssuedEvent.OutputObject

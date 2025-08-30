@@ -13,13 +13,20 @@ contract GreenCredit is ERC20, AccessControl {
 
     bool public paused = false;
 
-    event CreditsIssued(address indexed producer, address indexed buyer, uint256 amount);
+    struct Certificate {
+        address producer;
+        uint256 volume;
+        bool approved;
+        bool used;
+    }
+
+    mapping(uint256 => Certificate) public certificates;
+
+    event CreditsIssued(address indexed producer, address indexed buyer, uint256 amount, uint256 certId);
     event CreditsBurned(address indexed buyer, uint256 amount);
-    event CertificateApproved(address indexed certifier, uint256 certId, address producer);
+    event CertificateApproved(address indexed certifier, uint256 certId, address producer, uint256 volume);
     event Paused(address regulator);
     event Unpaused(address regulator);
-
-    mapping(uint256 => bool) public approvedCertificates;
 
     constructor() ERC20("GreenCredit", "GC") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -30,33 +37,54 @@ contract GreenCredit is ERC20, AccessControl {
         _;
     }
 
-    function approveCertificate(uint256 certId, address producer) external onlyRole(CERTIFIER_ROLE) {
-        require(!approvedCertificates[certId], "Already approved");
-        approvedCertificates[certId] = true;
-        emit CertificateApproved(msg.sender, certId, producer);
+    // === Certifier approves new certificate ===
+    function approveCertificate(uint256 certId, address producer, uint256 volume) 
+        external 
+        onlyRole(CERTIFIER_ROLE) 
+    {
+        require(!certificates[certId].approved, "Certificate already approved");
+        require(volume > 0, "Volume must be > 0");
+
+        certificates[certId] = Certificate({
+            producer: producer,
+            volume: volume,
+            approved: true,
+            used: false
+        });
+
+        emit CertificateApproved(msg.sender, certId, producer, volume);
     }
 
+    // === Producer issues credits tied to certificate ===
     function issue(uint256 certId, address buyer, uint256 amount) 
         external 
         onlyRole(PRODUCER_ROLE) 
         whenNotPaused 
     {
+        Certificate storage cert = certificates[certId];
+        require(cert.approved, "Certificate not approved");
+        require(!cert.used, "Certificate already used");
+        require(cert.producer == msg.sender, "Not certificate's producer");
+        require(amount <= cert.volume, "Exceeds certified volume");
         require(hasRole(BUYER_ROLE, buyer), "Recipient must be Buyer");
-        require(approvedCertificates[certId], "Certificate not approved");
+
         _mint(buyer, amount);
-        emit CreditsIssued(msg.sender, buyer, amount);
+        cert.used = true; // 🔒 lock once issued
+        emit CreditsIssued(msg.sender, buyer, amount, certId);
     }
 
+    // === Buyer burns credits when using hydrogen ===
     function useCredits(uint256 amount) external onlyRole(BUYER_ROLE) whenNotPaused {
         _burn(msg.sender, amount);
         emit CreditsBurned(msg.sender, amount);
     }
 
+    // === Auditor can view balances ===
     function getBalance(address account) external view returns (uint256) {
         return balanceOf(account);
     }
 
-    // Regulator powers
+    // === Regulator controls system state ===
     function pause() external onlyRole(REGULATOR_ROLE) {
         paused = true;
         emit Paused(msg.sender);
