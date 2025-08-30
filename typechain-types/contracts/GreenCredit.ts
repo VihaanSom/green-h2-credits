@@ -28,10 +28,14 @@ export interface GreenCreditInterface extends Interface {
     nameOrSignature:
       | "AUDITOR_ROLE"
       | "BUYER_ROLE"
+      | "CERTIFIER_ROLE"
       | "DEFAULT_ADMIN_ROLE"
       | "PRODUCER_ROLE"
+      | "REGULATOR_ROLE"
       | "allowance"
       | "approve"
+      | "approveCertificate"
+      | "approvedCertificates"
       | "balanceOf"
       | "decimals"
       | "getBalance"
@@ -40,6 +44,8 @@ export interface GreenCreditInterface extends Interface {
       | "hasRole"
       | "issue"
       | "name"
+      | "pause"
+      | "paused"
       | "renounceRole"
       | "revokeRole"
       | "supportsInterface"
@@ -47,18 +53,22 @@ export interface GreenCreditInterface extends Interface {
       | "totalSupply"
       | "transfer"
       | "transferFrom"
+      | "unpause"
       | "useCredits"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
       | "Approval"
+      | "CertificateApproved"
       | "CreditsBurned"
       | "CreditsIssued"
+      | "Paused"
       | "RoleAdminChanged"
       | "RoleGranted"
       | "RoleRevoked"
       | "Transfer"
+      | "Unpaused"
   ): EventFragment;
 
   encodeFunctionData(
@@ -70,11 +80,19 @@ export interface GreenCreditInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "CERTIFIER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "PRODUCER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "REGULATOR_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -84,6 +102,14 @@ export interface GreenCreditInterface extends Interface {
   encodeFunctionData(
     functionFragment: "approve",
     values: [AddressLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approveCertificate",
+    values: [BigNumberish, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approvedCertificates",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
@@ -108,9 +134,11 @@ export interface GreenCreditInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "issue",
-    values: [AddressLike, BigNumberish]
+    values: [BigNumberish, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(functionFragment: "pause", values?: undefined): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, AddressLike]
@@ -136,6 +164,7 @@ export interface GreenCreditInterface extends Interface {
     functionFragment: "transferFrom",
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "useCredits",
     values: [BigNumberish]
@@ -147,6 +176,10 @@ export interface GreenCreditInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "BUYER_ROLE", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "CERTIFIER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
     data: BytesLike
   ): Result;
@@ -154,8 +187,20 @@ export interface GreenCreditInterface extends Interface {
     functionFragment: "PRODUCER_ROLE",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "REGULATOR_ROLE",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "approveCertificate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "approvedCertificates",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getBalance", data: BytesLike): Result;
@@ -167,6 +212,8 @@ export interface GreenCreditInterface extends Interface {
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "issue", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
@@ -186,6 +233,7 @@ export interface GreenCreditInterface extends Interface {
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "useCredits", data: BytesLike): Result;
 }
 
@@ -200,6 +248,28 @@ export namespace ApprovalEvent {
     owner: string;
     spender: string;
     value: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace CertificateApprovedEvent {
+  export type InputTuple = [
+    certifier: AddressLike,
+    certId: BigNumberish,
+    producer: AddressLike
+  ];
+  export type OutputTuple = [
+    certifier: string,
+    certId: bigint,
+    producer: string
+  ];
+  export interface OutputObject {
+    certifier: string;
+    certId: bigint;
+    producer: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -231,6 +301,18 @@ export namespace CreditsIssuedEvent {
     producer: string;
     buyer: string;
     amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace PausedEvent {
+  export type InputTuple = [regulator: AddressLike];
+  export type OutputTuple = [regulator: string];
+  export interface OutputObject {
+    regulator: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -314,6 +396,18 @@ export namespace TransferEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace UnpausedEvent {
+  export type InputTuple = [regulator: AddressLike];
+  export type OutputTuple = [regulator: string];
+  export interface OutputObject {
+    regulator: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export interface GreenCredit extends BaseContract {
   connect(runner?: ContractRunner | null): GreenCredit;
   waitForDeployment(): Promise<this>;
@@ -361,9 +455,13 @@ export interface GreenCredit extends BaseContract {
 
   BUYER_ROLE: TypedContractMethod<[], [string], "view">;
 
+  CERTIFIER_ROLE: TypedContractMethod<[], [string], "view">;
+
   DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
   PRODUCER_ROLE: TypedContractMethod<[], [string], "view">;
+
+  REGULATOR_ROLE: TypedContractMethod<[], [string], "view">;
 
   allowance: TypedContractMethod<
     [owner: AddressLike, spender: AddressLike],
@@ -375,6 +473,18 @@ export interface GreenCredit extends BaseContract {
     [spender: AddressLike, value: BigNumberish],
     [boolean],
     "nonpayable"
+  >;
+
+  approveCertificate: TypedContractMethod<
+    [certId: BigNumberish, producer: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  approvedCertificates: TypedContractMethod<
+    [arg0: BigNumberish],
+    [boolean],
+    "view"
   >;
 
   balanceOf: TypedContractMethod<[account: AddressLike], [bigint], "view">;
@@ -398,12 +508,16 @@ export interface GreenCredit extends BaseContract {
   >;
 
   issue: TypedContractMethod<
-    [buyer: AddressLike, amount: BigNumberish],
+    [certId: BigNumberish, buyer: AddressLike, amount: BigNumberish],
     [void],
     "nonpayable"
   >;
 
   name: TypedContractMethod<[], [string], "view">;
+
+  pause: TypedContractMethod<[], [void], "nonpayable">;
+
+  paused: TypedContractMethod<[], [boolean], "view">;
 
   renounceRole: TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
@@ -439,6 +553,8 @@ export interface GreenCredit extends BaseContract {
     "nonpayable"
   >;
 
+  unpause: TypedContractMethod<[], [void], "nonpayable">;
+
   useCredits: TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
 
   getFunction<T extends ContractMethod = ContractMethod>(
@@ -452,10 +568,16 @@ export interface GreenCredit extends BaseContract {
     nameOrSignature: "BUYER_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "CERTIFIER_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "DEFAULT_ADMIN_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "PRODUCER_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "REGULATOR_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "allowance"
@@ -471,6 +593,16 @@ export interface GreenCredit extends BaseContract {
     [boolean],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "approveCertificate"
+  ): TypedContractMethod<
+    [certId: BigNumberish, producer: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "approvedCertificates"
+  ): TypedContractMethod<[arg0: BigNumberish], [boolean], "view">;
   getFunction(
     nameOrSignature: "balanceOf"
   ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
@@ -500,13 +632,19 @@ export interface GreenCredit extends BaseContract {
   getFunction(
     nameOrSignature: "issue"
   ): TypedContractMethod<
-    [buyer: AddressLike, amount: BigNumberish],
+    [certId: BigNumberish, buyer: AddressLike, amount: BigNumberish],
     [void],
     "nonpayable"
   >;
   getFunction(
     nameOrSignature: "name"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "pause"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "paused"
+  ): TypedContractMethod<[], [boolean], "view">;
   getFunction(
     nameOrSignature: "renounceRole"
   ): TypedContractMethod<
@@ -545,6 +683,9 @@ export interface GreenCredit extends BaseContract {
     "nonpayable"
   >;
   getFunction(
+    nameOrSignature: "unpause"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "useCredits"
   ): TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
 
@@ -554,6 +695,13 @@ export interface GreenCredit extends BaseContract {
     ApprovalEvent.InputTuple,
     ApprovalEvent.OutputTuple,
     ApprovalEvent.OutputObject
+  >;
+  getEvent(
+    key: "CertificateApproved"
+  ): TypedContractEvent<
+    CertificateApprovedEvent.InputTuple,
+    CertificateApprovedEvent.OutputTuple,
+    CertificateApprovedEvent.OutputObject
   >;
   getEvent(
     key: "CreditsBurned"
@@ -568,6 +716,13 @@ export interface GreenCredit extends BaseContract {
     CreditsIssuedEvent.InputTuple,
     CreditsIssuedEvent.OutputTuple,
     CreditsIssuedEvent.OutputObject
+  >;
+  getEvent(
+    key: "Paused"
+  ): TypedContractEvent<
+    PausedEvent.InputTuple,
+    PausedEvent.OutputTuple,
+    PausedEvent.OutputObject
   >;
   getEvent(
     key: "RoleAdminChanged"
@@ -597,6 +752,13 @@ export interface GreenCredit extends BaseContract {
     TransferEvent.OutputTuple,
     TransferEvent.OutputObject
   >;
+  getEvent(
+    key: "Unpaused"
+  ): TypedContractEvent<
+    UnpausedEvent.InputTuple,
+    UnpausedEvent.OutputTuple,
+    UnpausedEvent.OutputObject
+  >;
 
   filters: {
     "Approval(address,address,uint256)": TypedContractEvent<
@@ -608,6 +770,17 @@ export interface GreenCredit extends BaseContract {
       ApprovalEvent.InputTuple,
       ApprovalEvent.OutputTuple,
       ApprovalEvent.OutputObject
+    >;
+
+    "CertificateApproved(address,uint256,address)": TypedContractEvent<
+      CertificateApprovedEvent.InputTuple,
+      CertificateApprovedEvent.OutputTuple,
+      CertificateApprovedEvent.OutputObject
+    >;
+    CertificateApproved: TypedContractEvent<
+      CertificateApprovedEvent.InputTuple,
+      CertificateApprovedEvent.OutputTuple,
+      CertificateApprovedEvent.OutputObject
     >;
 
     "CreditsBurned(address,uint256)": TypedContractEvent<
@@ -630,6 +803,17 @@ export interface GreenCredit extends BaseContract {
       CreditsIssuedEvent.InputTuple,
       CreditsIssuedEvent.OutputTuple,
       CreditsIssuedEvent.OutputObject
+    >;
+
+    "Paused(address)": TypedContractEvent<
+      PausedEvent.InputTuple,
+      PausedEvent.OutputTuple,
+      PausedEvent.OutputObject
+    >;
+    Paused: TypedContractEvent<
+      PausedEvent.InputTuple,
+      PausedEvent.OutputTuple,
+      PausedEvent.OutputObject
     >;
 
     "RoleAdminChanged(bytes32,bytes32,bytes32)": TypedContractEvent<
@@ -674,6 +858,17 @@ export interface GreenCredit extends BaseContract {
       TransferEvent.InputTuple,
       TransferEvent.OutputTuple,
       TransferEvent.OutputObject
+    >;
+
+    "Unpaused(address)": TypedContractEvent<
+      UnpausedEvent.InputTuple,
+      UnpausedEvent.OutputTuple,
+      UnpausedEvent.OutputObject
+    >;
+    Unpaused: TypedContractEvent<
+      UnpausedEvent.InputTuple,
+      UnpausedEvent.OutputTuple,
+      UnpausedEvent.OutputObject
     >;
   };
 }
