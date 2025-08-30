@@ -496,11 +496,11 @@ export interface GreenCredit extends BaseContract {
   certificates: TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [string, bigint, bigint, boolean] & {
+      [string, bigint, boolean, boolean] & {
         producer: string;
         volume: bigint;
-        usedVolume: bigint;
         approved: boolean;
+        used: boolean;
       }
     ],
     "view"
@@ -625,11 +625,11 @@ export interface GreenCredit extends BaseContract {
   ): TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [string, bigint, bigint, boolean] & {
+      [string, bigint, boolean, boolean] & {
         producer: string;
         volume: bigint;
-        usedVolume: bigint;
         approved: boolean;
+        used: boolean;
       }
     ],
     "view"
