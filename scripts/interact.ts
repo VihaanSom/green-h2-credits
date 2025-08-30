@@ -2,7 +2,10 @@ import { ethers } from "hardhat";
 
 async function main() {
   const [admin, producer, buyer, auditor, certifier, regulator] = await ethers.getSigners();
-  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // replace after deploy
+  const contractAddress = process.env.CONTRACTADDRESS;
+  if (!contractAddress) {
+    throw new Error("CONTRACTADDRESS environment variable is not set.");
+  }
 
   const greenCredit = await ethers.getContractAt("GreenCredit", contractAddress);
 
